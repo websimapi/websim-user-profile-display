@@ -5,6 +5,7 @@ const avatarImg = document.getElementById('avatarImg');
 const usernameEl = document.getElementById('username');
 const statusEl = document.getElementById('status');
 const refreshBtn = document.getElementById('refreshBtn');
+const profileCard = document.getElementById('profileCard');
 
 const DEFAULT_AVATAR = 'https://www.gravatar.com/avatar/?d=mp&s=256';
 
@@ -39,6 +40,22 @@ function updateFromRoom(room) {
   }
 }
 
+// Paragraph to copy
+const COPY_TEXT = `This page reads the current client's info from the Websim room and updates the UI. Initialize the room with "const room = new WebsimSocket(); await room.initialize();", then read your client via room.peers[room.clientId] to get username and avatarUrl and update the DOM.`;
+
+// Copy handler with brief feedback
+function copyUsageToClipboard() {
+  if (!navigator.clipboard) return;
+  navigator.clipboard.writeText(COPY_TEXT).then(() => {
+    const prev = statusEl.textContent;
+    statusEl.textContent = 'Copied usage to clipboard';
+    setTimeout(() => { statusEl.textContent = prev; }, 1800);
+  }).catch(() => {
+    statusEl.textContent = 'Copy failed';
+    setTimeout(() => { statusEl.textContent = 'Connected'; }, 1800);
+  });
+}
+
 async function init() {
   statusEl.textContent = 'Connecting...';
   try {
@@ -47,6 +64,15 @@ async function init() {
 
     // Initial render
     updateFromRoom(room);
+
+    // Add interaction: tap/click or Enter key to copy usage paragraph
+    profileCard.addEventListener('click', copyUsageToClipboard);
+    profileCard.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        copyUsageToClipboard();
+      }
+    });
 
     // Subscribe to peer updates in case avatar/username changes
     const unsubscribePresence = room.subscribePresence(() => {
@@ -78,5 +104,3 @@ async function init() {
 }
 
 init();
-// ...existing code...
-
